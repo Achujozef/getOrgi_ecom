@@ -1,0 +1,140 @@
+{% extends "theme.html" %}
+{% load static %}
+
+{% block content %}
+<br>
+<br>
+<div class="row">
+  <div class="col-md-8">
+    <div class="cart-items">
+      {% if cart_items %}
+      {% for item in cart_items %}
+      <div class="cart-item">
+        <div class="row">
+          <div class="col-md-3">
+            {% if item.product.images.all %}
+            {% with item.product.images.all|first as img %}
+            <img src="{{ img.image.url }}" alt="Image" class="img-fluid cart-item-image">
+            {% endwith %}
+            {% endif %}
+          </div>
+          <div class="col-md-9">
+            <div class="cart-item-details">
+              <h2 class="h5 text-black cart-item-name">{{ item.product }}</h2>
+              <p class="cart-item-variant">{{ item.variant.variant }}</p>
+              <p class="cart-item-price">Price: {{ item.variant.price_after_offer }}</p>
+              {% if item.variant.stock < 10 %}
+              <p class="cart-item-stock" style="color: red;">Stock:{{ item.variant.stock }}</p>
+              {% endif %}
+              <form method="POST" action="{% url 'cart' %}">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                <div class="input-group cart-quantity">
+                  <button class="btn btn-outline-secondary cart-btn-minus" type="submit" name="action" value="minus">-</button>
+                  <span class="form-control cart-quantity-input">{{ item.quantity }}</span>
+                  <button class="btn btn-outline-secondary cart-btn-plus" type="submit" name="action" value="plus" {% if item.variant.stock <= item.quantity %}disabled{% endif %}>+</button>
+                </div>
+                {% if item.variant.stock <= item.quantity %}
+              <p class="cart-stock-not-available" style="color: red;">Only {{item.variant.stock }} Nos is Available</p>
+                {% endif %}
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <form method="POST" action="{% url 'remove_variant_from_cart' item.variant.id %}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm cart-btn-remove" type="submit">Remove</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <!-- Cart is empty message -->
+      <div class="cart-empty-message text-center">
+        <h3>Your cart is empty</h3>
+        <p>Start shopping now to add products to your cart.</p>
+        <button class="btn btn-primary" onclick="window.location='{% url 'shop' %}'">Shop Now</button>
+      </div>
+    {% endif %}
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card cart-summary">
+      <div class="card-body">
+        <h5 class="card-title">Cart Summary</h5>
+        <p class="card-text">Total Price: {{ total_price }}</p>
+        <p class="card-text">Total Quantity: {{ total_quantity }}</p>
+      </div>
+      <button class="btn btn-success btn-lg py-3 btn-block cart-btn-checkout" onclick="window.location='{% url 'checkout' %}'">Proceed To Checkout</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cart-items {
+    margin-bottom: 20px;
+  }
+
+  .cart-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .cart-item-image {
+    max-width: 100px;
+  }
+
+  .cart-item-details {
+    margin-left: 15px;
+  }
+
+  .cart-item-name {
+    margin-bottom: 5px;
+  }
+
+  .cart-item-variant {
+    color: #888;
+    margin-bottom: 5px;
+  }
+
+  .cart-item-price {
+    margin-bottom: 5px;
+  }
+
+  .cart-item-stock {
+    margin-bottom: 5px;
+  }
+
+  .cart-quantity {
+    max-width: 120px;
+    margin-bottom: 5px;
+  }
+
+  .cart-quantity-input {
+    text-align: center;
+  }
+
+  .cart-stock-not-available {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  .cart-btn-remove {
+    margin-top: 10px;
+  }
+
+  .cart-summary {
+    padding: 15px;
+  }
+
+  .cart-btn-checkout {
+    margin-top: 10px;
+  }
+</style>
+
+{% endblock %}
